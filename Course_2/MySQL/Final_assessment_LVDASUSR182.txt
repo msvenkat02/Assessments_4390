@@ -1,0 +1,118 @@
+
+-- Query-1
+select p.product_category,avg(s.sales_amount) from sales_records s
+join products p using(product_id) where s.sales_date< DATE_SUB(current_date(),interval 1 month)
+group by p.product_category;
+
+-- Query-2
+select p.product_id,sum(sales_amount) as "total_sales_amount",p.product_name from sales_records s
+join products p using(product_id) where year(s.sales_date)=year(current_date())
+group by p.product_id order by sum(sales_amount) desc limit 3;
+
+-- Query-3
+select customer_id,percent_rank() over (order by sum(sales_amount))as "percent_contribution"
+from sales_records join customers using(customer_id)
+group by customer_id;
+
+-- Query-4
+create view count_days as
+select count(customer_id) as no_days from sales_records
+group by customer_id
+HAving count(day(sales_date))>=2;
+select case when
+no_days>=4 and no_days<6 then "consistent_buyers"
+else "occasional_buyers" end as "status"
+from count_days ;
+-- Calculated this based on days
+
+-- Query-5
+select flight_id,departure_airport,arrival_airport,avg(ticket_price) from tickets
+join flights using(flight_id) group by flight_id;
+
+-- Query-6
+select flight_id,flight_number,departure_date,count(ticket_id) from tickets
+join flights using(flight_id) where 
+month(ticket_date)<month(current_date())
+group by flight_id;
+
+-- Query-7
+select p.passenger_name,p.passenger_id,p.frequent_flyer_status,sum(s.ticket_price)
+from tickets s join passengers p on s.passenger_id=p.passenger_id
+group by p.passenger_id
+order by sum(s.ticket_price) desc limit 5;
+
+-- Query-8
+select month(ticket_date) as "month of ticket",count(ticket_id) as "total number of tickets" from tickets
+group by month(ticket_date)
+order by count(ticket_id)
+desc limit 1;
+
+-- Query-9
+select game_id,avg(play_date-release_date) as "number_of_days",game_genre from playerscores
+join games using(game_id)
+group by game_id;
+
+-- Query-10
+select count(player_id),game_id,game_name from playerscores 
+join games using(game_id)
+group by game_id
+order by count(player_id) desc limit 3;
+
+-- Query-11
+select g.game_id,g.game_name,avg(p.score),max(p.score) from playerscores p
+join games g using(game_id) 
+group by g.game_id
+order by max(p.score) desc limit 3;
+
+-- Query-12
+select player_id,registration_date from players
+; 
+-- NA
+
+
+-- Query-13
+select d.doctor_id,d.doctor_name,sum(t.cost) as "total cost" from treatments t 
+join doctors d on t.doctor_id=d.doctor_id
+group by d.doctor_id
+order by sum(t.cost) desc;
+
+-- Query-14
+select treatment_id,treatment_name,sum(cost),
+(sum(cost)/(select sum(cost) from treatments)*100) as "percentage_contribution"from treatments
+group by treatment_id;
+
+-- Query-15
+select patient_id,patient_name,admission_date,discharge_date,treatment_date from patients
+join treatments using(patient_id)
+where discharge_date<date_sub(treatment_date,interval 1 month);
+
+-- Query-16
+select gender,diagnosis,round(avg(discharge_date-admission_date)) as "avg_no_of_days"
+from patients 
+group by gender,diagnosis;
+
+-- Query-17
+select c.department,e.semester,avg(grade) from enrollments e
+join courses c on e.course_id=c.course_id
+group by c.department,e.semester
+order by avg(grade) desc;
+
+-- Query-18
+select count(student_id),major,enrollment_year from students
+group by major,enrollment_year
+order by count(student_id) desc limit 5;
+
+-- Query-19
+select student_id,sum(credits),course_id,semester from enrollments
+join courses using(course_id)
+join students using(student_id)
+group by student_id,course_id,semester
+having sum(credits)>50;
+
+-- Query-20
+select course_id,course_name,enrollment_year,count(student_id) as "Total_students" 
+from enrollments
+join courses using(course_id)
+join students using(student_id)
+group by course_id,enrollment_year
+order by count(student_id) desc limit 3;
